@@ -3,7 +3,6 @@ export class CreatePostDomainDto {
   shortDescription: string;
   content: string;
   blogId: string;
-  blogName: string;
 }
 
 export class FindPostByIdDto {

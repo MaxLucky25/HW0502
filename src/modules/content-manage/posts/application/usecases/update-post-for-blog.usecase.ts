@@ -1,22 +1,23 @@
-import { UpdatePostInputDto } from '../../api/input-dto/update-post.input.dto';
+import { UpdatePostForBlogInputDto } from '../../api/input-dto/update-post-for-blog.input.dto';
 import { FindPostByIdDto } from '../../api/input-dto/post.domain.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostRepository } from '../../infrastructure/postRepository';
 
-export class UpdatePostCommand {
+export class UpdatePostForBlogCommand {
   constructor(
     public readonly id: FindPostByIdDto,
-    public readonly dto: UpdatePostInputDto,
+    public readonly blogId: string,
+    public readonly dto: UpdatePostForBlogInputDto,
   ) {}
 }
 
-@CommandHandler(UpdatePostCommand)
-export class UpdatePostUseCase
-  implements ICommandHandler<UpdatePostCommand, void>
+@CommandHandler(UpdatePostForBlogCommand)
+export class UpdatePostForBlogUseCase
+  implements ICommandHandler<UpdatePostForBlogCommand, void>
 {
   constructor(private postRepository: PostRepository) {}
 
-  async execute(command: UpdatePostCommand): Promise<void> {
+  async execute(command: UpdatePostForBlogCommand): Promise<void> {
     // Проверяем, что пост существует
     await this.postRepository.findOrNotFoundFail(command.id);
 
@@ -25,7 +26,7 @@ export class UpdatePostUseCase
       title: command.dto.title,
       shortDescription: command.dto.shortDescription,
       content: command.dto.content,
-      blogId: command.dto.blogId,
+      blogId: command.blogId,
     });
   }
 }

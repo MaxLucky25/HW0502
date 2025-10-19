@@ -27,9 +27,12 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { CreatePostForBlogInputDto } from '../../posts/api/input-dto/create-post-for-blog.input.dto';
+import { UpdatePostForBlogInputDto } from '../../posts/api/input-dto/update-post-for-blog.input.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreatePostForBlogCommand } from '../../posts/application/usecases/create-post-for-blog.usecase';
 import { GetAllPostsForBlogQuery } from '../../posts/application/query-usecases/get-all-posts-for-blog.usecase';
+import { UpdatePostForBlogCommand } from '../../posts/application/usecases/update-post-for-blog.usecase';
+import { DeletePostCommand } from '../../posts/application/usecases/delete-post.usecase';
 import { CreateBlogCommand } from '../application/usecase/create-blog.usecase';
 import { UpdateBlogCommand } from '../application/usecase/update-blog.usecase';
 import { DeleteBlogCommand } from '../application/usecase/delete-blog.usecase';
@@ -39,8 +42,8 @@ import { BasicAuthGuard } from '../../../auth-manage/guards/basic/basic-auth.gua
 import { OptionalJwtAuthGuard } from '../../../auth-manage/guards/bearer/optional-jwt-auth-guard';
 import { ExtractUserIdForJwtOptionalGuard } from '../../../auth-manage/guards/decorators/param/extract-user-id-for-jwt-optional-guard.decorator';
 
-@ApiTags('blogs')
-@Controller('blogs')
+@ApiTags('sa/blogs')
+@Controller('sa/blogs')
 export class BlogsController {
   constructor(
     private commandBus: CommandBus,
@@ -48,6 +51,7 @@ export class BlogsController {
   ) {}
 
   @Get(':id')
+  @UseGuards(BasicAuthGuard)
   @ApiOperation({ summary: 'Get blog by id' })
   @ApiParam({ name: 'id', description: 'Blog ID' })
   @ApiResponse({ status: 200, description: 'Blog found' })
@@ -56,6 +60,7 @@ export class BlogsController {
   }
 
   @Get()
+  @UseGuards(BasicAuthGuard)
   @ApiOperation({ summary: 'Get all blogs' })
   @ApiQuery({ name: 'pageNumber', required: false })
   @ApiQuery({ name: 'pageSize', required: false })
@@ -102,7 +107,7 @@ export class BlogsController {
   }
 
   @Get(':id/posts')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, BasicAuthGuard)
   @ApiOperation({ summary: 'Get posts for a blog' })
   @ApiParam({ name: 'id', description: 'Blog ID' })
   @ApiResponse({ status: 200, description: 'List of blog posts' })
@@ -130,5 +135,37 @@ export class BlogsController {
     return this.commandBus.execute(
       new CreatePostForBlogCommand({ blogId }, body),
     );
+  }
+
+  @Put(':blogId/posts/:postId')
+  @UseGuards(BasicAuthGuard)
+  @ApiOperation({ summary: 'Update post by id' })
+  @ApiParam({ name: 'blogId', description: 'Blog ID' })
+  @ApiParam({ name: 'postId', description: 'Post ID' })
+  @ApiBody({ type: UpdatePostForBlogInputDto })
+  @ApiResponse({ status: 204, description: 'Post updated' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updatePost(
+    @Param('blogId') blogId: string,
+    @Param('postId') postId: string,
+    @Body() body: UpdatePostForBlogInputDto,
+  ): Promise<void> {
+    return this.commandBus.execute(
+      new UpdatePostForBlogCommand({ id: postId }, blogId, body),
+    );
+  }
+
+  @Delete(':blogId/posts/:postId')
+  @UseGuards(BasicAuthGuard)
+  @ApiOperation({ summary: 'Delete post by id' })
+  @ApiParam({ name: 'blogId', description: 'Blog ID' })
+  @ApiParam({ name: 'postId', description: 'Post ID' })
+  @ApiResponse({ status: 204, description: 'Post deleted' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deletePost(
+    @Param('blogId') blogId: string,
+    @Param('postId') postId: string,
+  ): Promise<void> {
+    return this.commandBus.execute(new DeletePostCommand({ id: postId }));
   }
 }

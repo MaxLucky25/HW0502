@@ -1,7 +1,7 @@
 import { configModule } from './configs/dynamic-config-module';
 import { Module } from '@nestjs/common';
 import { TestingModule } from './modules/testing/testing.module';
-// import { ContentModule } from './modules/content-manage/content.module';
+import { ContentModule } from './modules/content-manage/content.module';
 import { AuthManageModule } from './modules/auth-manage/auth-manage.module';
 import { ThrottlerConfigModule } from './configs/throttle-config.module';
 import { CoreModule } from './core/core.module';
@@ -12,7 +12,7 @@ import { CoreModule } from './core/core.module';
     CoreModule,
     ThrottlerConfigModule,
     AuthManageModule,
-    // ContentModule,
+    ContentModule,
     TestingModule,
   ],
   controllers: [],

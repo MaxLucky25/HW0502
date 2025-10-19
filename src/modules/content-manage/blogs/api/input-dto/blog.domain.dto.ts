@@ -7,7 +7,3 @@ export class CreateBlogDomainDto {
 export class FindByIdDto {
   id: string;
 }
-
-export class FindByNameDto {
-  name: string;
-}

@@ -50,3 +50,26 @@ export interface RawPasswordRecoveryRow {
   created_at: Date;
   updated_at: Date;
 }
+
+// Blog types
+export interface RawBlogRow {
+  id: string;
+  name: string;
+  description: string;
+  website_url: string;
+  is_membership: boolean;
+  created_at: Date;
+  deleted_at: Date | null;
+}
+
+// Post types
+export interface RawPostRow {
+  id: string;
+  title: string;
+  short_description: string;
+  content: string;
+  blog_id: string;
+  blog_name: string;
+  created_at: Date;
+  deleted_at: Date | null;
+}

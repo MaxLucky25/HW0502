@@ -1,4 +1,4 @@
-import { FindByIdDto } from '../../domain/dto/blog.domain.dto';
+import { FindByIdDto } from '../../api/input-dto/blog.domain.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BlogRepository } from '../../infrastructure/blog.repository';
 
@@ -12,10 +12,12 @@ export class DeleteBlogUseCase
 {
   constructor(private blogRepository: BlogRepository) {}
   async execute(command: DeleteBlogCommand): Promise<void> {
-    const blog = await this.blogRepository.findOrNotFoundFail({
+    // Проверяем, что блог существует
+    await this.blogRepository.findOrNotFoundFail({
       id: command.blogId.id,
     });
-    blog.makeDeleted();
-    await this.blogRepository.save(blog);
+
+    // Удаляем блог через новый метод репозитория
+    await this.blogRepository.deleteBlog(command.blogId.id);
   }
 }
