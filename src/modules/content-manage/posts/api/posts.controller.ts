@@ -33,8 +33,10 @@ import { GetAllPostsQuery } from '../application/query-usecases/get-all-posts.us
 import { OptionalJwtAuthGuard } from '../../../auth-manage/guards/bearer/optional-jwt-auth-guard';
 import { ExtractUserIdForJwtOptionalGuard } from '../../../auth-manage/guards/decorators/param/extract-user-id-for-jwt-optional-guard.decorator';
 import { BasicAuthGuard } from '../../../auth-manage/guards/basic/basic-auth.guard';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('posts')
+@SkipThrottle()
 @Controller('posts')
 export class PostsController {
   constructor(

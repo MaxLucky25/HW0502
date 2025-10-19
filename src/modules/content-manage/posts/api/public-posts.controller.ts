@@ -14,8 +14,10 @@ import { GetPostByIdQuery } from '../application/query-usecases/get-post-by-id.u
 import { GetAllPostsQuery } from '../application/query-usecases/get-all-posts.usecase';
 import { OptionalJwtAuthGuard } from '../../../auth-manage/guards/bearer/optional-jwt-auth-guard';
 import { ExtractUserIdForJwtOptionalGuard } from '../../../auth-manage/guards/decorators/param/extract-user-id-for-jwt-optional-guard.decorator';
+import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('posts')
+@SkipThrottle()
 @Controller('posts')
 export class PublicPostsController {
   constructor(private queryBus: QueryBus) {}
