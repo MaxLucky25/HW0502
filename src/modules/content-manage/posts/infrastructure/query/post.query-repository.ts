@@ -7,6 +7,7 @@ import { DomainException } from '../../../../../core/exceptions/domain-exception
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { RawPostRow } from '../../../../../core/database/types/sql.types';
 import { ExtendedLikesInfoViewDto } from '../../api/view-dto/likesPost/extended-likes-info.view-dto';
+import { LikeStatus } from '../../domain/dto/likesPost/like-status.enum';
 
 @Injectable()
 export class PostQueryRepository {
@@ -17,7 +18,7 @@ export class PostQueryRepository {
       SELECT p.*, b.name as blog_name
       FROM posts p
       JOIN blogs b ON p.blog_id = b.id
-      WHERE p.id = $1 AND p.deleted_at IS NULL AND b.deleted_at IS NULL
+      WHERE p.id = $1 AND p.deleted_at IS NULL AND b.deleted_at IS NULL 
     `;
     const result = await this.databaseService.query<
       RawPostRow & { blog_name: string }
@@ -41,6 +42,11 @@ export class PostQueryRepository {
     query: GetPostsQueryParams,
     userId?: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
+    console.log('🔍 getAllPost called with params:', {
+      queryParams: query,
+      userId,
+    });
+
     const searchTitleTerm = query.searchTitleTerm || null;
 
     // Маппинг полей для PostgreSQL
@@ -50,6 +56,14 @@ export class PostQueryRepository {
 
     const limit = query.pageSize;
     const offset = query.calculateSkip();
+
+    console.log('📊 Query parameters:', {
+      searchTitleTerm,
+      orderBy,
+      direction,
+      limit,
+      offset,
+    });
 
     // Строим WHERE условия динамически
     let whereConditions = 'WHERE p.deleted_at IS NULL AND b.deleted_at IS NULL';
@@ -81,28 +95,60 @@ export class PostQueryRepository {
     // Добавляем limit и offset к параметрам для postsQuery
     const postsQueryParams = [...queryParams, limit, offset];
 
-    const [postsResult, countResult] = await Promise.all([
-      this.databaseService.query<RawPostRow & { blog_name: string }>(
+    console.log('🗃️ SQL Queries:', {
+      postsQuery,
+      countQuery,
+      postsQueryParams,
+      queryParams,
+    });
+
+    try {
+      const [postsResult, countResult] = await Promise.all([
+        this.databaseService.query<RawPostRow & { blog_name: string }>(
+          postsQuery,
+          postsQueryParams,
+        ),
+        this.databaseService.query<{ count: string }>(countQuery, queryParams),
+      ]);
+
+      console.log('📈 Query results:', {
+        postsCount: postsResult.rows.length,
+        totalCount: countResult.rows[0]?.count,
+      });
+
+      const totalCount = parseInt(countResult.rows[0].count);
+
+      // Заглушка для лайков (пока не реализуем)
+      const items = postsResult.rows.map((post) => {
+        const extendedLikesInfo = this.getEmptyLikesInfo();
+        return PostViewDto.mapToView(post, extendedLikesInfo);
+      });
+
+      const result = PaginatedViewDto.mapToView({
+        items,
+        totalCount,
+        page: query.pageNumber,
+        size: query.pageSize,
+      });
+
+      console.log('✅ getAllPost completed successfully:', {
+        itemsCount: items.length,
+        totalCount,
+        page: query.pageNumber,
+        size: query.pageSize,
+      });
+
+      return result;
+    } catch (error) {
+      console.error('❌ Error in getAllPost:', {
+        error: error.message,
+        stack: error.stack,
+        queryParams: query,
         postsQuery,
         postsQueryParams,
-      ),
-      this.databaseService.query<{ count: string }>(countQuery, queryParams),
-    ]);
-
-    const totalCount = parseInt(countResult.rows[0].count);
-
-    // Заглушка для лайков (пока не реализуем)
-    const items = postsResult.rows.map((post) => {
-      const extendedLikesInfo = this.getEmptyLikesInfo();
-      return PostViewDto.mapToView(post, extendedLikesInfo);
-    });
-
-    return PaginatedViewDto.mapToView({
-      items,
-      totalCount,
-      page: query.pageNumber,
-      size: query.pageSize,
-    });
+      });
+      throw error;
+    }
   }
 
   async getAllPostForBlog(
@@ -179,7 +225,7 @@ export class PostQueryRepository {
     return {
       likesCount: 0,
       dislikesCount: 0,
-      myStatus: 'None' as any,
+      myStatus: LikeStatus.None,
       newestLikes: [],
     };
   }

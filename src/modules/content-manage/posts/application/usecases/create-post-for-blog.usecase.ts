@@ -5,6 +5,7 @@ import { PostViewDto } from '../../api/view-dto/post.view-dto';
 import { PostRepository } from '../../infrastructure/postRepository';
 import { BlogRepository } from '../../../blogs/infrastructure/blog.repository';
 import { ExtendedLikesInfoViewDto } from '../../api/view-dto/likesPost/extended-likes-info.view-dto';
+import { LikeStatus } from '../../domain/dto/likesPost/like-status.enum';
 
 export class CreatePostForBlogCommand {
   constructor(
@@ -39,7 +40,7 @@ export class CreatePostForBlogUseCase
     const extendedLikesInfo: ExtendedLikesInfoViewDto = {
       likesCount: 0,
       dislikesCount: 0,
-      myStatus: 'None' as any,
+      myStatus: LikeStatus.None,
       newestLikes: [],
     };
 
