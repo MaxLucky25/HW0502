@@ -8,6 +8,7 @@ import { DomainExceptionCode } from '../../../../../core/exceptions/domain-excep
 import { RawPostRow } from '../../../../../core/database/types/sql.types';
 import { ExtendedLikesInfoViewDto } from '../../api/view-dto/likesPost/extended-likes-info.view-dto';
 import { LikeStatus } from '../../domain/dto/likesPost/like-status.enum';
+import { POST_SORT_FIELD_MAP } from '../../api/input-dto/post-sort-by';
 
 @Injectable()
 export class PostQueryRepository {
@@ -42,28 +43,14 @@ export class PostQueryRepository {
     query: GetPostsQueryParams,
     userId?: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    console.log('🔍 getAllPost called with params:', {
-      queryParams: query,
-      userId,
-    });
-
     const searchTitleTerm = query.searchTitleTerm || null;
 
     // Маппинг полей для PostgreSQL
-    const orderBy =
-      query.sortBy === 'createdAt' ? 'p.created_at' : `p.${query.sortBy}`;
+    const orderBy = POST_SORT_FIELD_MAP[query.sortBy];
     const direction = query.sortDirection.toUpperCase();
 
     const limit = query.pageSize;
     const offset = query.calculateSkip();
-
-    console.log('📊 Query parameters:', {
-      searchTitleTerm,
-      orderBy,
-      direction,
-      limit,
-      offset,
-    });
 
     // Строим WHERE условия динамически
     let whereConditions = 'WHERE p.deleted_at IS NULL AND b.deleted_at IS NULL';
@@ -95,13 +82,6 @@ export class PostQueryRepository {
     // Добавляем limit и offset к параметрам для postsQuery
     const postsQueryParams = [...queryParams, limit, offset];
 
-    console.log('🗃️ SQL Queries:', {
-      postsQuery,
-      countQuery,
-      postsQueryParams,
-      queryParams,
-    });
-
     try {
       const [postsResult, countResult] = await Promise.all([
         this.databaseService.query<RawPostRow & { blog_name: string }>(
@@ -111,11 +91,6 @@ export class PostQueryRepository {
         this.databaseService.query<{ count: string }>(countQuery, queryParams),
       ]);
 
-      console.log('📈 Query results:', {
-        postsCount: postsResult.rows.length,
-        totalCount: countResult.rows[0]?.count,
-      });
-
       const totalCount = parseInt(countResult.rows[0].count);
 
       // Заглушка для лайков (пока не реализуем)
@@ -124,29 +99,13 @@ export class PostQueryRepository {
         return PostViewDto.mapToView(post, extendedLikesInfo);
       });
 
-      const result = PaginatedViewDto.mapToView({
+      return PaginatedViewDto.mapToView({
         items,
         totalCount,
         page: query.pageNumber,
         size: query.pageSize,
       });
-
-      console.log('✅ getAllPost completed successfully:', {
-        itemsCount: items.length,
-        totalCount,
-        page: query.pageNumber,
-        size: query.pageSize,
-      });
-
-      return result;
     } catch (error) {
-      console.error('❌ Error in getAllPost:', {
-        error: error.message,
-        stack: error.stack,
-        queryParams: query,
-        postsQuery,
-        postsQueryParams,
-      });
       throw error;
     }
   }
@@ -159,8 +118,7 @@ export class PostQueryRepository {
     const searchTitleTerm = query.searchTitleTerm || null;
 
     // Маппинг полей для PostgreSQL
-    const orderBy =
-      query.sortBy === 'createdAt' ? 'p.created_at' : `p.${query.sortBy}`;
+    const orderBy = POST_SORT_FIELD_MAP[query.sortBy];
     const direction = query.sortDirection.toUpperCase();
 
     const limit = query.pageSize;
