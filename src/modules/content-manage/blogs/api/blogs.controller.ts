@@ -32,7 +32,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreatePostForBlogCommand } from '../../posts/application/usecases/create-post-for-blog.usecase';
 import { GetAllPostsForBlogQuery } from '../../posts/application/query-usecases/get-all-posts-for-blog.usecase';
 import { UpdatePostForBlogCommand } from '../../posts/application/usecases/update-post-for-blog.usecase';
-import { DeletePostCommand } from '../../posts/application/usecases/delete-post.usecase';
+import { DeletePostForBlogCommand } from '../../posts/application/usecases/delete-post-for-blog.usecase';
 import { CreateBlogCommand } from '../application/usecase/create-blog.usecase';
 import { UpdateBlogCommand } from '../application/usecase/update-blog.usecase';
 import { DeleteBlogCommand } from '../application/usecase/delete-blog.usecase';
@@ -168,6 +168,8 @@ export class BlogsController {
     @Param('blogId') blogId: string,
     @Param('postId') postId: string,
   ): Promise<void> {
-    return this.commandBus.execute(new DeletePostCommand({ id: postId }));
+    return this.commandBus.execute(
+      new DeletePostForBlogCommand({ id: postId }, blogId),
+    );
   }
 }

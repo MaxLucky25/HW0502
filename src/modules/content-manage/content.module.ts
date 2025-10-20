@@ -48,6 +48,7 @@ import { CreatePostUseCase } from './posts/application/usecases/create-post.usec
 import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
 import { UpdatePostForBlogUseCase } from './posts/application/usecases/update-post-for-blog.usecase';
 import { DeletePostUseCase } from './posts/application/usecases/delete-post.usecase';
+import { DeletePostForBlogUseCase } from './posts/application/usecases/delete-post-for-blog.usecase';
 import { CreatePostForBlogUseCase } from './posts/application/usecases/create-post-for-blog.usecase';
 import { GetPostByIdUseCase } from './posts/application/query-usecases/get-post-by-id.usecase';
 import { GetAllPostsQueryUseCase } from './posts/application/query-usecases/get-all-posts.usecase';
@@ -80,6 +81,7 @@ const PostCommandHandlers = [
   UpdatePostUseCase,
   UpdatePostForBlogUseCase,
   DeletePostUseCase,
+  DeletePostForBlogUseCase,
   CreatePostForBlogUseCase,
   // UpdatePostLikeUseCase,
 ];

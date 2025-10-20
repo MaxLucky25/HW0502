@@ -69,7 +69,6 @@ export interface RawPostRow {
   short_description: string;
   content: string;
   blog_id: string;
-  blog_name: string;
   created_at: Date;
   deleted_at: Date | null;
 }

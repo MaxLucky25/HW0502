@@ -12,7 +12,7 @@ export class PostViewDto {
   extendedLikesInfo: ExtendedLikesInfoViewDto;
 
   static mapToView(
-    post: RawPostRow & { blog_name?: string },
+    post: RawPostRow & { blog_name: string },
     extendedLikesInfo: ExtendedLikesInfoViewDto,
   ): PostViewDto {
     const dto = new PostViewDto();
