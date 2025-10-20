@@ -13,18 +13,24 @@ import { randomUUID } from 'crypto';
 export class PostRepository {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  async findById(dto: FindPostByIdDto): Promise<RawPostRow | null> {
+  async findById(
+    dto: FindPostByIdDto,
+  ): Promise<(RawPostRow & { blog_name: string }) | null> {
     const query = `
-      SELECT * FROM posts 
-      WHERE id = $1 AND deleted_at IS NULL
+      SELECT p.*, b.name as blog_name
+      FROM posts p
+      JOIN blogs b ON p.blog_id = b.id
+      WHERE p.id = $1 AND p.deleted_at IS NULL AND b.deleted_at IS NULL
     `;
-    const result = await this.databaseService.query<RawPostRow>(query, [
-      dto.id,
-    ]);
+    const result = await this.databaseService.query<
+      RawPostRow & { blog_name: string }
+    >(query, [dto.id]);
     return result.rows[0] || null;
   }
 
-  async findOrNotFoundFail(id: FindPostByIdDto): Promise<RawPostRow> {
+  async findOrNotFoundFail(
+    id: FindPostByIdDto,
+  ): Promise<RawPostRow & { blog_name: string }> {
     const post = await this.findById(id);
     if (!post) {
       throw new DomainException({
@@ -37,18 +43,27 @@ export class PostRepository {
     return post;
   }
 
-  async createPost(dto: CreatePostDomainDto): Promise<RawPostRow> {
+  async createPost(
+    dto: CreatePostDomainDto,
+  ): Promise<RawPostRow & { blog_name: string }> {
     const postId = randomUUID();
     const query = `
-      INSERT INTO posts (
-        id, title, short_description, content, blog_id,
-        created_at, deleted_at
-      ) VALUES (
-        $1, $2, $3, $4, $5, NOW(), $6
+      WITH inserted_post AS (
+        INSERT INTO posts (
+          id, title, short_description, content, blog_id,
+          created_at, deleted_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, NOW(), $6
+        )
+        RETURNING *
       )
-      RETURNING *
+      SELECT p.*, b.name as blog_name
+      FROM inserted_post p
+      JOIN blogs b ON p.blog_id = b.id
     `;
-    const result = await this.databaseService.query<RawPostRow>(query, [
+    const result = await this.databaseService.query<
+      RawPostRow & { blog_name: string }
+    >(query, [
       postId,
       dto.title,
       dto.shortDescription,
@@ -59,31 +74,51 @@ export class PostRepository {
     return result.rows[0];
   }
 
-  async updatePost(id: string, dto: CreatePostDomainDto): Promise<RawPostRow> {
+  async updatePost(
+    id: string,
+    dto: CreatePostDomainDto,
+  ): Promise<RawPostRow & { blog_name: string }> {
     const query = `
-      UPDATE posts 
-      SET title = $2, short_description = $3, content = $4, blog_id = $5
-      WHERE id = $1 AND deleted_at IS NULL
-      RETURNING *
+      WITH updated_post AS (
+        UPDATE posts 
+        SET title = $2, short_description = $3, content = $4, blog_id = $5
+        WHERE id = $1 AND deleted_at IS NULL
+        RETURNING *
+      )
+      SELECT p.*, b.name as blog_name
+      FROM updated_post p
+      JOIN blogs b ON p.blog_id = b.id
     `;
-    const result = await this.databaseService.query<RawPostRow>(query, [
-      id,
-      dto.title,
-      dto.shortDescription,
-      dto.content,
-      dto.blogId,
-    ]);
+    const result = await this.databaseService.query<
+      RawPostRow & { blog_name: string }
+    >(query, [id, dto.title, dto.shortDescription, dto.content, dto.blogId]);
     return result.rows[0];
   }
 
-  async deletePost(id: string): Promise<RawPostRow> {
+  async deletePost(id: string): Promise<RawPostRow & { blog_name: string }> {
     const query = `
-      UPDATE posts 
-      SET deleted_at = NOW()
-      WHERE id = $1 AND deleted_at IS NULL
-      RETURNING *
+      WITH deleted_post AS (
+        UPDATE posts 
+        SET deleted_at = NOW()
+        WHERE id = $1 AND deleted_at IS NULL
+        RETURNING *
+      )
+      SELECT p.*, b.name as blog_name
+      FROM deleted_post p
+      JOIN blogs b ON p.blog_id = b.id
     `;
-    const result = await this.databaseService.query<RawPostRow>(query, [id]);
+    const result = await this.databaseService.query<
+      RawPostRow & { blog_name: string }
+    >(query, [id]);
+
+    if (result.rows.length === 0) {
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Post not found',
+        field: 'Post',
+      });
+    }
+
     return result.rows[0];
   }
 }

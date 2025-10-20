@@ -13,10 +13,7 @@ export class DeletePostUseCase
   constructor(private postRepository: PostRepository) {}
 
   async execute(command: DeletePostCommand): Promise<void> {
-    // Проверяем, что пост существует
-    await this.postRepository.findOrNotFoundFail(command.id);
-
-    // Удаляем пост через новый метод репозитория
+    // Удаляем пост (включает проверку существования)
     await this.postRepository.deletePost(command.id.id);
   }
 }
