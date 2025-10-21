@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DatabaseService } from '../../../../../core/database/database.service';
 import { BlogViewDto } from '../../api/view-dto/blog.view-dto';
 import { GetBlogsQueryParams } from '../../api/input-dto/get-blogs-query-params.input-dto';
+import { BlogSortBy } from '../../api/input-dto/blog-sort-by';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
@@ -34,8 +35,9 @@ export class BlogQueryRepository {
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
     const searchNameTerm = query.searchNameTerm || null;
 
-    // Маппинг полей для PostgreSQL
-    const orderBy = query.sortBy === 'createdAt' ? 'created_at' : query.sortBy;
+    // Маппинг полей для PostgresSQL
+    const orderBy =
+      query.sortBy === BlogSortBy.CreateAt ? 'created_at' : query.sortBy;
     const direction = query.sortDirection.toUpperCase();
 
     const limit = query.pageSize;

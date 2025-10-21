@@ -82,32 +82,28 @@ export class PostQueryRepository {
     // Добавляем limit и offset к параметрам для postsQuery
     const postsQueryParams = [...queryParams, limit, offset];
 
-    try {
-      const [postsResult, countResult] = await Promise.all([
-        this.databaseService.query<RawPostRow & { blog_name: string }>(
-          postsQuery,
-          postsQueryParams,
-        ),
-        this.databaseService.query<{ count: string }>(countQuery, queryParams),
-      ]);
+    const [postsResult, countResult] = await Promise.all([
+      this.databaseService.query<RawPostRow & { blog_name: string }>(
+        postsQuery,
+        postsQueryParams,
+      ),
+      this.databaseService.query<{ count: string }>(countQuery, queryParams),
+    ]);
 
-      const totalCount = parseInt(countResult.rows[0].count);
+    const totalCount = parseInt(countResult.rows[0].count);
 
-      // Заглушка для лайков (пока не реализуем)
-      const items = postsResult.rows.map((post) => {
-        const extendedLikesInfo = this.getEmptyLikesInfo();
-        return PostViewDto.mapToView(post, extendedLikesInfo);
-      });
+    // Заглушка для лайков (пока не реализуем)
+    const items = postsResult.rows.map((post) => {
+      const extendedLikesInfo = this.getEmptyLikesInfo();
+      return PostViewDto.mapToView(post, extendedLikesInfo);
+    });
 
-      return PaginatedViewDto.mapToView({
-        items,
-        totalCount,
-        page: query.pageNumber,
-        size: query.pageSize,
-      });
-    } catch (error) {
-      throw error;
-    }
+    return PaginatedViewDto.mapToView({
+      items,
+      totalCount,
+      page: query.pageNumber,
+      size: query.pageSize,
+    });
   }
 
   async getAllPostForBlog(
@@ -117,7 +113,7 @@ export class PostQueryRepository {
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     const searchTitleTerm = query.searchTitleTerm || null;
 
-    // Маппинг полей для PostgreSQL
+    // Маппинг полей для PostgresSQL
     const orderBy = POST_SORT_FIELD_MAP[query.sortBy];
     const direction = query.sortDirection.toUpperCase();
 

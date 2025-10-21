@@ -18,7 +18,7 @@ export class DeletePostForBlogUseCase
   constructor(private postRepository: PostRepository) {}
 
   async execute(command: DeletePostForBlogCommand): Promise<void> {
-    // Проверяем, что пост существует и принадлежит указанному блогу
+    // Сначала проверяем, что пост существует
     const post = await this.postRepository.findById(command.id);
     if (!post) {
       throw new DomainException({
@@ -28,6 +28,7 @@ export class DeletePostForBlogUseCase
       });
     }
 
+    // Проверяем, что пост принадлежит указанному блогу
     if (post.blog_id !== command.blogId) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
@@ -36,7 +37,7 @@ export class DeletePostForBlogUseCase
       });
     }
 
-    // Удаляем пост
+    // Удаляем пост (теперь мы знаем, что он существует и принадлежит нужному блогу)
     await this.postRepository.deletePost(command.id.id);
   }
 }

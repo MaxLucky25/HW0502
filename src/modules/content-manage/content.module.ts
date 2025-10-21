@@ -5,7 +5,6 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { BlogsController } from './blogs/api/blogs.controller';
 import { PostsController } from './posts/api/posts.controller';
 import { PublicBlogsController } from './blogs/api/public-blogs.controller';
-import { PublicPostsController } from './posts/api/public-posts.controller';
 // import { CommentsController } from './comments/api/comments.controller';
 
 // Post entities and schemas
@@ -44,10 +43,7 @@ import { GetBlogByIdUseCase } from './blogs/application/query-usecase/get-blog.u
 import { GetAllBlogsQueryUseCase } from './blogs/application/query-usecase/get-all-blogs.usecase';
 
 // Post use cases
-import { CreatePostUseCase } from './posts/application/usecases/create-post.usecase';
-import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
 import { UpdatePostForBlogUseCase } from './posts/application/usecases/update-post-for-blog.usecase';
-import { DeletePostUseCase } from './posts/application/usecases/delete-post.usecase';
 import { DeletePostForBlogUseCase } from './posts/application/usecases/delete-post-for-blog.usecase';
 import { CreatePostForBlogUseCase } from './posts/application/usecases/create-post-for-blog.usecase';
 import { GetPostByIdUseCase } from './posts/application/query-usecases/get-post-by-id.usecase';
@@ -77,10 +73,7 @@ const BlogCommandHandlers = [
 const BlogQueryHandlers = [GetBlogByIdUseCase, GetAllBlogsQueryUseCase];
 
 const PostCommandHandlers = [
-  CreatePostUseCase,
-  UpdatePostUseCase,
   UpdatePostForBlogUseCase,
-  DeletePostUseCase,
   DeletePostForBlogUseCase,
   CreatePostForBlogUseCase,
   // UpdatePostLikeUseCase,
@@ -130,7 +123,6 @@ const Repositories = [
     BlogsController,
     PostsController,
     PublicBlogsController,
-    PublicPostsController,
     // CommentsController
   ],
   exports: [

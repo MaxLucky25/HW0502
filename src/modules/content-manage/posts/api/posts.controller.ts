@@ -1,38 +1,19 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Delete,
-  Put,
-  Query,
-  HttpStatus,
-  HttpCode,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { PostViewDto } from './view-dto/post.view-dto';
 import { GetPostsQueryParams } from './input-dto/get-posts-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
-import { UpdatePostInputDto } from './input-dto/update-post.input.dto';
-import { CreatePostInputDto } from './input-dto/create-post.input.dto';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
-  ApiBody,
   ApiQuery,
 } from '@nestjs/swagger';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { CreatePostCommand } from '../application/usecases/create-post.usecase';
-import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
-import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
 import { GetPostByIdQuery } from '../application/query-usecases/get-post-by-id.usecase';
 import { GetAllPostsQuery } from '../application/query-usecases/get-all-posts.usecase';
 import { OptionalJwtAuthGuard } from '../../../auth-manage/guards/bearer/optional-jwt-auth-guard';
 import { ExtractUserIdForJwtOptionalGuard } from '../../../auth-manage/guards/decorators/param/extract-user-id-for-jwt-optional-guard.decorator';
-import { BasicAuthGuard } from '../../../auth-manage/guards/basic/basic-auth.guard';
 import { SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('posts')
@@ -69,39 +50,6 @@ export class PostsController {
     @ExtractUserIdForJwtOptionalGuard() userId?: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     return this.queryBus.execute(new GetAllPostsQuery(query, userId));
-  }
-
-  @Post()
-  @UseGuards(BasicAuthGuard)
-  @ApiOperation({ summary: 'Create a post' })
-  @ApiBody({ type: CreatePostInputDto })
-  @ApiResponse({ status: 201, description: 'Post created' })
-  async create(@Body() body: CreatePostInputDto): Promise<PostViewDto> {
-    return this.commandBus.execute(new CreatePostCommand(body, undefined));
-  }
-
-  @Put(':id')
-  @UseGuards(BasicAuthGuard)
-  @ApiOperation({ summary: 'Update a post' })
-  @ApiParam({ name: 'id', description: 'Post ID' })
-  @ApiBody({ type: UpdatePostInputDto })
-  @ApiResponse({ status: 204, description: 'Post updated' })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async update(
-    @Param('id') id: string,
-    @Body() body: UpdatePostInputDto,
-  ): Promise<void> {
-    return this.commandBus.execute(new UpdatePostCommand({ id }, body));
-  }
-
-  @Delete(':id')
-  @UseGuards(BasicAuthGuard)
-  @ApiOperation({ summary: 'Delete a post' })
-  @ApiParam({ name: 'id', description: 'Post ID' })
-  @ApiResponse({ status: 204, description: 'Post deleted' })
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deletePost(@Param('id') id: string): Promise<void> {
-    return this.commandBus.execute(new DeletePostCommand({ id }));
   }
 
   // @Put(':postId/like-status')

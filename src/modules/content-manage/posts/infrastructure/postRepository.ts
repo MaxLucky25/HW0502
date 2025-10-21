@@ -95,7 +95,9 @@ export class PostRepository {
     return result.rows[0];
   }
 
-  async deletePost(id: string): Promise<RawPostRow & { blog_name: string }> {
+  async deletePost(
+    id: string,
+  ): Promise<(RawPostRow & { blog_name: string }) | null> {
     const query = `
       WITH deleted_post AS (
         UPDATE posts 
@@ -111,14 +113,6 @@ export class PostRepository {
       RawPostRow & { blog_name: string }
     >(query, [id]);
 
-    if (result.rows.length === 0) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'Post not found',
-        field: 'Post',
-      });
-    }
-
-    return result.rows[0];
+    return result.rows[0] || null;
   }
 }
